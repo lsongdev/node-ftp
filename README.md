@@ -4,7 +4,7 @@ ftp
 
 ### Installation
 ````
-$ [sudo] npm install node-ftp
+$ npm install x-ftp --save
 ````
 
 
@@ -41,18 +41,18 @@ ftp.createServer(function(client){
 ```js
 const ftp = require('x-ftp');
 
-ftp.connect('ftp://lsong.org', function(err, f){
+ftp.connect('ftp://lsong.org', function(err, server){
   
-  f.cwd();
-  f.pwd();
-  f.get();
-  f.put();
-  f.list();
-  f.mkdir();
-  f.rmdir();
-  f.rename();
-  f.delete();
-  f.logout();
+  server.cwd();
+  server.pwd();
+  server.get();
+  server.put();
+  server.list();
+  server.mkdir();
+  server.rmdir();
+  server.rename();
+  server.delete();
+  server.logout();
 
 });
 ```
