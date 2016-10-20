@@ -1,6 +1,6 @@
-## node-ftp ![npm](https://badge.fury.io/js/node-ftp.png)
+## node-ftp ![npm](https://badge.fury.io/js/x-ftp.png)
 
-ftp
+ftp 
 
 ### Installation
 ````
@@ -9,9 +9,53 @@ $ [sudo] npm install node-ftp
 
 
 ### Example
+
 ````javascript
-var node-ftp = require('node-ftp');
+const ftp = require('x-ftp');
+
+ftp.createServer(function(client){
+
+  client.on('put', function(req){
+    req.pipe(fs.createWriteStream(req.filename));
+  });
+
+  client.on('get', function(filename){
+    return fs.createReadStream(filename);
+  });
+
+  client.on('list', function(){
+    return [
+      { name: 'aa', size: 110000, date: new Date },
+      { name: 'aa', size: 110000, date: new Date },
+      { name: 'aa', size: 110000, date: new Date },
+      { name: 'aa', size: 110000, date: new Date },
+      { name: 'aa', size: 110000, date: new Date },
+    ];
+  });
+  
+}).listen(21, function(err){
+  console.log('server is running');
+});
 ````
+
+```js
+const ftp = require('x-ftp');
+
+ftp.connect('ftp://lsong.org', function(err, f){
+  
+  f.cwd();
+  f.pwd();
+  f.get();
+  f.put();
+  f.list();
+  f.mkdir();
+  f.rmdir();
+  f.rename();
+  f.delete();
+  f.logout();
+
+});
+```
 
 ### API
 
@@ -48,5 +92,3 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ---
-![docor](https://cdn1.iconfinder.com/data/icons/windows8_icons_iconpharm/26/doctor.png)
-built upon love by [docor](https://github.com/turingou/docor.git) v0.1.3
