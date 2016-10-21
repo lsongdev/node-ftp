@@ -25,11 +25,7 @@ ftp.createServer(function(client){
 
   client.on('list', function(){
     return [
-      { name: 'aa', size: 110000, date: new Date },
-      { name: 'aa', size: 110000, date: new Date },
-      { name: 'aa', size: 110000, date: new Date },
-      { name: 'aa', size: 110000, date: new Date },
-      { name: 'aa', size: 110000, date: new Date },
+      [ 755, 1, 1000, 1000, 3023, new Date, 'Vagrantfile' ]
     ];
   });
   
