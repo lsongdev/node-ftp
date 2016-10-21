@@ -1,6 +1,6 @@
 ## node-ftp ![npm](https://badge.fury.io/js/x-ftp.png)
 
-ftp 
+ftp
 
 ### Installation
 ````
