@@ -1,5 +1,5 @@
-const FtpClient = require('./lib/client');
-const FtpServer = require('./lib/server');
+const FtpClient = require('./client');
+const FtpServer = require('./server');
 
 /**
  * [Client description]
