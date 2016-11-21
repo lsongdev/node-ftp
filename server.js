@@ -5,9 +5,9 @@ const EventEmitter = require('events');
 const CRLF = '\r\n';
 
 /**
- * [FtpServer description]
+ * [Server description]
  */
-function FtpServer(options){
+function Server(options){
   var self = this;
   this.server = tcp.createServer();
   this.server.on('connection', function(socket){
@@ -16,13 +16,13 @@ function FtpServer(options){
   });
 };
 
-util.inherits(FtpServer, EventEmitter);
+util.inherits(Server, EventEmitter);
 
 /**
  * [function description]
  * @return {[type]} [description]
  */
-FtpServer.prototype.listen = function(){
+Server.prototype.listen = function(){
   this.server.listen.apply(this.server, arguments);
 };
 
@@ -185,10 +185,10 @@ Connection.prototype.createServer = function(callback){
  * [Connection description]
  * @type {[type]}
  */
-FtpServer.Connection = Connection;
+Server.Connection = Connection;
 
 /**
  * [exports description]
  * @type {[type]}
  */
-module.exports = FtpServer;
+module.exports = Server;

@@ -7,7 +7,6 @@
 $ npm install x-ftp --save
 ````
 
-
 ### Example
 
 ````javascript

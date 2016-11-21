@@ -1,5 +1,5 @@
 {
-  "name": "x-ftp",
+  "name": "xftp",
   "version": "1.0.1",
   "description": "ftp server and client written in pure javascript",
   "main": "index.js",
