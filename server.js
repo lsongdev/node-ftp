@@ -6,6 +6,7 @@ const CRLF = '\r\n';
 
 /**
  * [Server description]
+ * @docs https://www.ietf.org/rfc/rfc959.txt
  */
 function Server(options){
   var self = this;
@@ -98,6 +99,12 @@ Connection.prototype.parse = function(line){
       if(arg == 'I') this.mode = 'binary';
       this.reply(200, 'Type set to ' + arg);
       break;
+    case 'PORT':
+      var addr = arg.split(',');
+      var host = [ addr[0], addr[1], addr[2], addr[3] ].join('.');
+      var port = (parseInt(addr[4]) * 256) + parseInt(addr[5]);
+      this.reply(200, 'PORT command successful.');
+      break;
     case 'PASV':
       this.createServer(function(host, port){
         var i1 = parseInt(port / 256);
@@ -174,8 +181,8 @@ Connection.prototype.parse = function(line){
 Connection.prototype.createServer = function(callback){
   var self = this;
   this.pserver = tcp.createServer(function(psock){
-    self.reply(150, 'Connection Accepted');
     self.psock = psock;
+    self.reply(150, 'Connection Accepted');
   }).listen(function(port){
     var address = this.address();
     callback.call(self, '127.0.0.1', address.port);

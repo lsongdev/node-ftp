@@ -9,6 +9,7 @@ const CRLF = '\r\n';
 /**
  * [FTPClient description]
  * @param {[type]} options [description]
+ * @docs https://www.ietf.org/rfc/rfc959.txt
  */
 function FTP(options){
   EventEmitter.call(this);

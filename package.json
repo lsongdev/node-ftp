@@ -4,7 +4,8 @@
   "description": "ftp server and client written in pure javascript",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
@@ -17,6 +18,12 @@
   },
   "homepage": "https://github.com/song940/node-ftp#readme",
   "keywords": [
-    "ftp"
-  ]
+    "ftp",
+    "client",
+    "server"
+  ],
+  "directories": {
+    "example": "example",
+    "test": "test"
+  }
 }

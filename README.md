@@ -1,16 +1,16 @@
-## node-ftp ![npm](https://badge.fury.io/js/x-ftp.png)
+## node-ftp ![npm](https://badge.fury.io/js/xftp.png)
 
 > ftp server and client written in pure javascript
 
 ### Installation
 ````
-$ npm install x-ftp --save
+$ npm i xftp --save
 ````
 
 ### Example
 
 ````javascript
-const ftp = require('x-ftp');
+const ftp = require('xftp');
 
 ftp.createServer(function(client){
 
@@ -34,7 +34,7 @@ ftp.createServer(function(client){
 ````
 
 ```js
-const ftp = require('x-ftp');
+const ftp = require('xftp');
 
 ftp.connect('ftp://lsong.org', function(err, server){
   
