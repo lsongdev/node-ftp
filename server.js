@@ -10,11 +10,25 @@ const CRLF = '\r\n';
  */
 function Server(options){
   var self = this;
+  var defaults = {
+    username: this.username,
+    password: this.password,
+    auth    : this.auth,
+    list    : this.list,
+    get     : this.get,
+    put     : this.put,
+    cwd     : this.cwd,
+    pwd     : this.pwd,
+  };
+  for(var key in options)
+    defaults[ key ] = options[ key ];
+  this.options = defaults;
   this.server = tcp.createServer();
   this.server.on('connection', function(socket){
-    var client = new Connection(socket);
-    self.emit('connection', client);
+    var connection = new Connection(self, socket);
+    self.emit('connection', connection);
   });
+  return this;
 };
 
 util.inherits(Server, EventEmitter);
@@ -25,21 +39,19 @@ util.inherits(Server, EventEmitter);
  */
 Server.prototype.listen = function(){
   this.server.listen.apply(this.server, arguments);
+  return this;
 };
 
 /**
  * [Connection description]
  * @param {[type]} client [description]
  */
-function Connection(client){
+function Connection(server, socket){
   EventEmitter.call(this);
-  this.client = client;
+  this.socket  = socket;
+  this.options = server.options;
   var data = '', parts = [], self = this;
-  client
-  .on('error', function(err){
-    console.log(err);
-  })
-  .on('data', function(chunk){
+  socket.on('data', function(chunk){
     data += chunk;
     parts = data.split(CRLF);
     data = parts.pop();
@@ -60,7 +72,7 @@ util.inherits(Connection, EventEmitter);
 Connection.prototype.reply = function(code, msg){
   msg = msg || '';
   console.log('> ', code, msg);
-  this.client.write([ code, msg ].join(' ') + CRLF);
+  this.socket.write([ code, msg ].join(' ') + CRLF);
 };
 
 /**
@@ -69,15 +81,16 @@ Connection.prototype.reply = function(code, msg){
  */
 Connection.prototype.parse = function(line){
   var self = this;
+  console.log('< ', line);
   var m = line.match(/^(\w+)(\s(.*))?$/);
   var cmd = m[1], arg = m[3];
-  console.log('< ', line);
   switch(cmd){
     case 'USER':
-      this.emit('user', arg);
+      this.username = arg;
       this.reply(331, 'Please specify the password.');
       break;
     case 'PASS':
+      this.password = arg;
       this.reply(230, 'Login successful.');
       break;
     case 'SYST':
@@ -88,11 +101,11 @@ Connection.prototype.parse = function(line){
       this.reply(211, 'End');
       break;
     case 'CWD':
-      this.pwd = arg;
+      this.currentDirectory = arg;
       this.reply(250, 'Directory changed to ' + arg);
       break;
     case 'PWD':
-      this.reply(257, '"' + this.pwd + '"');
+      this.reply(257, '"' + this.currentDirectory + '"');
       break;
     case 'TYPE':
       if(arg == 'A') this.mode = 'ascii';
@@ -103,10 +116,11 @@ Connection.prototype.parse = function(line){
       var addr = arg.split(',');
       var host = [ addr[0], addr[1], addr[2], addr[3] ].join('.');
       var port = (parseInt(addr[4]) * 256) + parseInt(addr[5]);
+      this.transfer = tcp.createConnection(port, host);
       this.reply(200, 'PORT command successful.');
       break;
     case 'PASV':
-      this.createServer(function(host, port){
+      this.passiveServer = this.createServer(function(host, port){
         var i1 = parseInt(port / 256);
         var i2 = parseInt(port % 256);
         host = host.split('.').join(',');
@@ -119,7 +133,7 @@ Connection.prototype.parse = function(line){
       this.reply(202, 'Not supported');
       break;
     case 'LIST':
-      self.psock.end('test', function(){
+      this.transfer.end('test', function(){
         self.reply(226, 'Transfer OK');
       });
       break;
@@ -136,22 +150,18 @@ Connection.prototype.parse = function(line){
       // });
       break;
     case 'STOR':
-      this.psock
-      .setEncoding(this.mode)
-      .on('error', function(err){
-        console.log('perr', err);
-      })
-      .on('data', function(buf){
-        console.log('pdata');
-      })
-      .on('end', function(){
-        console.log('end');
-        self.reply(226, 'Closing data connection, recv 65536 bytes');
+      this.transfer.setEncoding(this.mode);
+      this.options.put(arg, this.transfer);
+      self.transfer.once('end', function(){
+        self.passiveServer.close();
+        self.reply(226, 'Transfer OK');
       });
       break;
     case 'RETR':
-      this.psock.end('hello', function(){
-        self.reply(226, 'Closing data connection, sent 65536 bytes');
+      this.options.get(arg).pipe(this.transfer);
+      self.transfer.once('end', function(){
+        self.passiveServer.close();
+        self.reply(226, 'Transfer OK');
       });
       break;
     case 'RNFR':
@@ -164,7 +174,8 @@ Connection.prototype.parse = function(line){
       this.reply(250, 'file deleted');
       break;
     case 'QUIT':
-      this.client.end();
+      this.transfer.end();
+      this.socket.end('bye!');
       break;
     default:
       console.warn('command not supported', line);
@@ -180,10 +191,10 @@ Connection.prototype.parse = function(line){
  */
 Connection.prototype.createServer = function(callback){
   var self = this;
-  this.pserver = tcp.createServer(function(psock){
-    self.psock = psock;
+  return tcp.createServer(function(sock){
+    self.transfer = sock;
     self.reply(150, 'Connection Accepted');
-  }).listen(function(port){
+  }.bind(this)).listen(function(err){
     var address = this.address();
     callback.call(self, '127.0.0.1', address.port);
   });

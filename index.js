@@ -1,5 +1,4 @@
 'use strict';
-const Server = require('./server');
 const tcp          = require('net');
 const util         = require('util');
 const EventEmitter = require('events');
@@ -62,7 +61,7 @@ FTP.prototype.parse = function(line){
       if(true){
         this.createSocket();
       }else{
-        this.send('PASV');
+        return this.send('PASV');
       }
       break;
     case 227:
@@ -110,7 +109,7 @@ FTP.prototype.send = function(command, arg, callback){
  * @return {[type]}            [description]
  */
 FTP.prototype.user = function(name, callback){
-  this.send('USER', name, function(err, res){
+  return this.send('USER', name, function(err, res){
     if(res && res.code == 331){
       err = new Error(res.msg);
       err.code = res.code;
@@ -126,7 +125,7 @@ FTP.prototype.user = function(name, callback){
  * @return {[type]}            [description]
  */
 FTP.prototype.pass = function(pass, callback){
-  this.send('PASS', pass, callback);
+  return this.send('PASS', pass, callback);
 };
 
 /**
@@ -136,7 +135,7 @@ FTP.prototype.pass = function(pass, callback){
  * @return {[type]}            [description]
  */
 FTP.prototype.get = function(filename, callback){
-  this.send('RETR', filename, callback);
+  return this.send('RETR', filename, callback);
 };
 
 /**
@@ -147,40 +146,40 @@ FTP.prototype.get = function(filename, callback){
  * @return {[type]}            [description]
  */
 FTP.prototype.put = function(local, remote, callback){
-  this.send('STOR');
+  return this.send('STOR');
 };
 
 FTP.prototype.cwd = function(dir, callback){
-  this.send('CWD', dir, callback);
+  return this.send('CWD', dir, callback);
 };
 
 FTP.prototype.pwd = function(callback){
-  this.send('PWD', callback);
+  return this.send('PWD', callback);
 };
 
 FTP.prototype.list = function(){
-  this.send('LIST');
+  return this.send('LIST');
 };
 
 FTP.prototype.rename = function(from, to){
-  this.send('RNFR', from);
-  this.send('RNTO', to);
+  return this.send('RNFR', from);
+  return this.send('RNTO', to);
 };
 
 FTP.prototype.delete = function(filename){
-  this.send('DELE', filename);
+  return this.send('DELE', filename);
 };
 
 FTP.prototype.rmdir = function(dir){
-  this.send('RMD', dir);
+  return this.send('RMD', dir);
 };
 
 FTP.prototype.mkdir = function(dir){
-  this.send('MKD', dir);
+  return this.send('MKD', dir);
 };
 
 FTP.prototype.logout = function(){
-  this.send('LOGOUT');
+  return this.send('LOGOUT');
 };
 
 /**
@@ -188,17 +187,15 @@ FTP.prototype.logout = function(){
  * @type {[type]}
  */
 FTP.Client = FTP;
-FTP.Server = Server;
+FTP.Server = require('./server');
 
 /**
  * [createServer description]
  * @param  {Function} callback [description]
  * @return {[type]}            [description]
  */
-FTP.createServer = function(callback){
-  var server = new FTP.Server();
-  server.on('connection', callback);
-  return server;
+FTP.createServer = function(options){
+  return new FTP.Server(options);
 };
 
 module.exports = FTP;
