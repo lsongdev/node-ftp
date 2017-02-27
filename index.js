@@ -21,7 +21,6 @@ function FTP(options){
   .on('connect', this.emit.bind(this,'connect'))
   .on('data', function(chunk){
     data += chunk;
-    // console.log(data);
     parts = data.split(CRLF);
     data = parts.pop();
     parts.forEach(self.parse.bind(self));

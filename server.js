@@ -116,16 +116,22 @@ Connection.prototype.parse = function(line){
       var addr = arg.split(',');
       var host = [ addr[0], addr[1], addr[2], addr[3] ].join('.');
       var port = (parseInt(addr[4]) * 256) + parseInt(addr[5]);
-      this.transfer = tcp.createConnection(port, host);
-      this.reply(200, 'PORT command successful.');
+      this.transfer = tcp.connect(port, host, function(err){
+        self.reply(200, 'PORT command successful.');
+      });
       break;
     case 'PASV':
-      this.passiveServer = this.createServer(function(host, port){
+      return tcp.createServer(function(sock){
+        self.transfer = sock;
+        self.reply(150, 'Connection Accepted');
+      }.bind(this)).listen(function(err){
+        var address = this.address();
+        var host = '127.0.0.1';
+        var port = address.port;
         var i1 = parseInt(port / 256);
         var i2 = parseInt(port % 256);
-        host = host.split('.').join(',');
-        var address = [ host, i1, i2 ].join(',');
-        this.reply(227, 'Entering Passive Mode ('+ address +')');
+        var address = host.split('.').concat([ i1, i2 ]).join(',');
+        self.reply(227, 'Entering Passive Mode ('+ address +')');
       });
       break;
     case 'EPSV':
@@ -184,21 +190,6 @@ Connection.prototype.parse = function(line){
   };
 };
 
-/**
- * [createServer description]
- * @param  {Function} callback [description]
- * @return {[type]}            [description]
- */
-Connection.prototype.createServer = function(callback){
-  var self = this;
-  return tcp.createServer(function(sock){
-    self.transfer = sock;
-    self.reply(150, 'Connection Accepted');
-  }.bind(this)).listen(function(err){
-    var address = this.address();
-    callback.call(self, '127.0.0.1', address.port);
-  });
-};
 /**
  * [Connection description]
  * @type {[type]}
