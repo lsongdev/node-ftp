@@ -1,6 +1,6 @@
 'use strict';
-const tcp          = require('net');
-const util         = require('util');
+const tcp = require('net');
+const util = require('util');
 const EventEmitter = require('events');
 
 const CRLF = '\r\n';
@@ -10,21 +10,21 @@ const CRLF = '\r\n';
  * @param {[type]} options [description]
  * @docs https://www.ietf.org/rfc/rfc959.txt
  */
-function FTP(options){
+function FTP(options) {
   EventEmitter.call(this);
   this.queue = [];
   var data = '', parts = [], self = this;
   this.socket = tcp.connect(options)
-  .on('error', function(){
-    console.error('-x fail to connect ');
-  })
-  .on('connect', this.emit.bind(this,'connect'))
-  .on('data', function(chunk){
-    data += chunk;
-    parts = data.split(CRLF);
-    data = parts.pop();
-    parts.forEach(self.parse.bind(self));
-  });
+    .on('error', function () {
+      console.error('-x fail to connect ');
+    })
+    .on('connect', this.emit.bind(this, 'connect'))
+    .on('data', function (chunk) {
+      data += chunk;
+      parts = data.split(CRLF);
+      data = parts.pop();
+      parts.forEach(self.parse.bind(self));
+    });
 };
 
 /**
@@ -33,7 +33,7 @@ function FTP(options){
  * @param  {Function} callback   [description]
  * @return {[type]}              [description]
  */
-FTP.connect = function(connection, callback){
+FTP.connect = function (connection, callback) {
   var client = new FTP(connection);
   client.on('connect', callback);
   return client;
@@ -46,7 +46,7 @@ util.inherits(FTP, EventEmitter);
  * @param  {[type]} line [description]
  * @return {[type]}      [description]
  */
-FTP.prototype.parse = function(line){
+FTP.prototype.parse = function (line) {
   var m = line.match(/^(\d{3})\s(.*)$/);
   var code = parseInt(m[1], 10), msg = m[2];
 
@@ -57,9 +57,9 @@ FTP.prototype.parse = function(line){
       break;
     case 425:
       // PORT, PASV
-      if(true){
+      if (true) {
         this.createSocket();
-      }else{
+      } else {
         return this.send('PASV');
       }
       break;
@@ -82,19 +82,19 @@ FTP.prototype.parse = function(line){
  * @param  {Function} callback [description]
  * @return {[type]}            [description]
  */
-FTP.prototype.send = function(command, arg, callback){
+FTP.prototype.send = function (command, arg, callback) {
   var self = this;
-  if(typeof arg == 'function'){
+  if (typeof arg == 'function') {
     callback = arg;
-  }else if(arg){
+  } else if (arg) {
     command += ' ' + arg;
   }
-  if(!callback) callback = function(){};
-  this.queue.push([ command, callback ]);
-  if(this.socket.readable && !this.req){
+  if (!callback) callback = function () { };
+  this.queue.push([command, callback]);
+  if (this.socket.readable && !this.req) {
     this.req = this.queue.shift();
-    if(this.req){
-      this.socket.write(this.req[0] + CRLF, function(){
+    if (this.req) {
+      this.socket.write(this.req[0] + CRLF, function () {
         console.log('->', self.req[0]);
       });
     }
@@ -107,9 +107,9 @@ FTP.prototype.send = function(command, arg, callback){
  * @param  {Function} callback [description]
  * @return {[type]}            [description]
  */
-FTP.prototype.user = function(name, callback){
-  return this.send('USER', name, function(err, res){
-    if(res && res.code == 331){
+FTP.prototype.user = function (name, callback) {
+  return this.send('USER', name, function (err, res) {
+    if (res && res.code == 331) {
       err = new Error(res.msg);
       err.code = res.code;
     }
@@ -123,7 +123,7 @@ FTP.prototype.user = function(name, callback){
  * @param  {Function} callback [description]
  * @return {[type]}            [description]
  */
-FTP.prototype.pass = function(pass, callback){
+FTP.prototype.pass = function (pass, callback) {
   return this.send('PASS', pass, callback);
 };
 
@@ -133,7 +133,7 @@ FTP.prototype.pass = function(pass, callback){
  * @param  {Function} callback [description]
  * @return {[type]}            [description]
  */
-FTP.prototype.get = function(filename, callback){
+FTP.prototype.get = function (filename, callback) {
   return this.send('RETR', filename, callback);
 };
 
@@ -144,40 +144,40 @@ FTP.prototype.get = function(filename, callback){
  * @param  {Function} callback [description]
  * @return {[type]}            [description]
  */
-FTP.prototype.put = function(local, remote, callback){
+FTP.prototype.put = function (local, remote, callback) {
   return this.send('STOR');
 };
 
-FTP.prototype.cwd = function(dir, callback){
+FTP.prototype.cwd = function (dir, callback) {
   return this.send('CWD', dir, callback);
 };
 
-FTP.prototype.pwd = function(callback){
+FTP.prototype.pwd = function (callback) {
   return this.send('PWD', callback);
 };
 
-FTP.prototype.list = function(){
+FTP.prototype.list = function () {
   return this.send('LIST');
 };
 
-FTP.prototype.rename = function(from, to){
+FTP.prototype.rename = function (from, to) {
   return this.send('RNFR', from);
   return this.send('RNTO', to);
 };
 
-FTP.prototype.delete = function(filename){
+FTP.prototype.delete = function (filename) {
   return this.send('DELE', filename);
 };
 
-FTP.prototype.rmdir = function(dir){
+FTP.prototype.rmdir = function (dir) {
   return this.send('RMD', dir);
 };
 
-FTP.prototype.mkdir = function(dir){
+FTP.prototype.mkdir = function (dir) {
   return this.send('MKD', dir);
 };
 
-FTP.prototype.logout = function(){
+FTP.prototype.logout = function () {
   return this.send('LOGOUT');
 };
 
@@ -193,7 +193,7 @@ FTP.Server = require('./server');
  * @param  {Function} callback [description]
  * @return {[type]}            [description]
  */
-FTP.createServer = function(options){
+FTP.createServer = function (options) {
   return new FTP.Server(options);
 };
 
